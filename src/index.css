@@ -1,0 +1,101 @@
+@import "@solana/wallet-adapter-react-ui/styles.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #020617;
+    color: #e2e8f0;
+    font-family: "Inter", sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a1628;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e3a5f;
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer components {
+  .alpha-card {
+    @apply bg-alpha-card border border-alpha-border rounded-xl;
+  }
+  .alpha-btn-primary {
+    @apply bg-alpha-success text-alpha-bg font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+  .alpha-btn-secondary {
+    @apply bg-alpha-border text-alpha-text font-medium px-4 py-2 rounded-lg hover:bg-alpha-blue/20 hover:border-alpha-blue transition-all duration-200 border border-alpha-border;
+  }
+  .alpha-input {
+    @apply bg-alpha-surface border border-alpha-border rounded-lg px-3 py-2 text-alpha-text placeholder-alpha-muted focus:outline-none focus:border-alpha-blue transition-all text-sm;
+  }
+  .mono {
+    font-family: "JetBrains Mono", monospace;
+  }
+  .glow-green {
+    box-shadow: 0 0 12px rgba(0, 255, 189, 0.3);
+  }
+  .glow-blue {
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+  }
+  .glow-alert {
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
+  }
+  .ticker-dot {
+    @apply w-1.5 h-1.5 rounded-full bg-alpha-success animate-pulse-fast;
+  }
+}
+
+/* Wallet adapter overrides */
+.wallet-adapter-button {
+  background: #00ffbd !important;
+  color: #020617 !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  border-radius: 8px !important;
+}
+.wallet-adapter-button:hover {
+  opacity: 0.9 !important;
+}
+.wallet-adapter-modal-wrapper {
+  background: #0a1628 !important;
+  border: 1px solid #1e3a5f !important;
+  border-radius: 16px !important;
+}
+.wallet-adapter-modal-title {
+  color: #e2e8f0 !important;
+}
+.wallet-adapter-modal-list li {
+  border-color: #1e3a5f !important;
+}
+.wallet-adapter-dropdown {
+  z-index: 100;
+}
+.wallet-adapter-modal-wrapper {
+  z-index: 100;
+}
