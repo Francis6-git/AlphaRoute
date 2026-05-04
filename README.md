@@ -1,5 +1,7 @@
 ### AlphaRoute
 
+https://alpha-route.vercel.app/
+
 **The Execution Intelligence Terminal**  
 _MEV-Protected Trading • Automated Yield Management • Execution Analytics_
 
@@ -145,17 +147,19 @@ root/
 Clone the repository and navigate into the project directory:
 
 ````bash
-git clone https://github.com/bumblecode/alpharoute.git
-cd alpharoute
+git clone https://github.com/Francis6-git/AlphaRoute.git
+cd AlphaRoute
 
 ## Configure Environment
 
 Create a `.env` file in the root of your project based on `.env.example`:
 
 ```env
-VITE_QUICKNODE_RPC=your_rpc_url
 VITE_SUPABASE_URL=your_project_url
 VITE_SUPABASE_ANON_KEY=your_anon_key
+PRIVATE_RPC_URL=your_Quicknode_mainnet_Solana_RPC_endpoint
+DFLOW_API_KEY=Your_secret_DFlow_key(optional)
+VITE_API_BASE_URL=https://your_app.vercel.app/
 
 ## Launch Development Server
 

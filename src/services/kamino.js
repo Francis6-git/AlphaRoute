@@ -1,5 +1,6 @@
 import {
   DIALECT_PROXY,
+  KAMINO_API_PROXY,
   KAMINO_MAIN_MARKET,
   KAMINO_RESERVES,
   SOL_USDC_VAULT,
@@ -191,26 +192,27 @@ export async function fetchBlinkMeta(path) {
 }
 
 /**
- * For a production build, @kamino-finance/kaminisdk fetch implementation using their data API for speed.
+ * Fetch live Kamino positions for a wallet via the /api/kamino proxy.
+ * Routing through the proxy prevents CORS errors and direct-fetch 403s.
  */
 export async function fetchLiveKaminoPositions(walletPublicKey) {
   try {
-    // You can use Kamino's public data API or your own indexer
     const response = await fetch(
-      `https://api.kamino.finance/v1/users/${walletPublicKey}/positions`,
+      `${KAMINO_API_PROXY}/v1/users/${walletPublicKey}/positions`,
     );
-    if (!response.ok) throw new Error("Failed to fetch Kamino positions");
+    if (!response.ok)
+      throw new Error(`Kamino positions API returned ${response.status}`);
 
     const data = await response.json();
+    if (!Array.isArray(data?.positions)) return [];
 
-    // Map their API response to your UI structure
     return data.positions.map((p) => ({
       id: p.obligationId || p.vaultId,
-      type: p.strategyType, // e.g., 'Lend', 'Multiply', 'LP'
+      type: p.strategyType,
       token: p.symbol,
-      amount: parseFloat(p.amount),
-      usdValue: parseFloat(p.usdValue),
-      apy: parseFloat(p.apy),
+      amount: parseFloat(p.amount) || 0,
+      usdValue: parseFloat(p.usdValue) || 0,
+      apy: parseFloat(p.apy) || 0,
       health: p.healthFactor || 100,
       icon: p.mintAddress
         ? `https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/${p.mintAddress}/logo.png`
@@ -218,45 +220,45 @@ export async function fetchLiveKaminoPositions(walletPublicKey) {
       leverage: p.leverage || null,
     }));
   } catch (error) {
-    console.error("Error fetching live positions:", error);
-    return []; // Return empty so UI doesn't crash
+    console.error("[kamino] fetchLiveKaminoPositions:", error.message);
+    return [];
   }
 }
 
 // Mock Kamino position data (would be fetched from on-chain in production)
-export function getMockPositions(solPrice) {
-  const sp = solPrice || 150;
-  return [
-    {
-      id: "lend-usdc",
-      type: "Lend",
-      token: "USDC",
-      amount: 2450.0,
-      usdValue: 2450.0,
-      apy: 5.8,
-      health: 92,
-      icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
-    },
-    {
-      id: "multiply-jitosol",
-      type: "Multiply 3x",
-      token: "JitoSOL/SOL",
-      amount: 1.5,
-      usdValue: 1.5 * sp * 3,
-      apy: 14.2,
-      leverage: 3,
-      health: 78,
-      icon: "https://storage.googleapis.com/token-metadata/JitoSOL-256.png",
-    },
-    {
-      id: "lp-solusdc",
-      type: "LP Vault",
-      token: "SOL-USDC",
-      amount: 0.8,
-      usdValue: 0.8 * sp + 120,
-      apy: 22.5,
-      health: 95,
-      icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
-    },
-  ];
-}
+// export function getMockPositions(solPrice) {
+//   const sp = solPrice || 150;
+//   return [
+//     {
+//       id: "lend-usdc",
+//       type: "Lend",
+//       token: "USDC",
+//       amount: 2450.0,
+//       usdValue: 2450.0,
+//       apy: 5.8,
+//       health: 92,
+//       icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+//     },
+//     {
+//       id: "multiply-jitosol",
+//       type: "Multiply 3x",
+//       token: "JitoSOL/SOL",
+//       amount: 1.5,
+//       usdValue: 1.5 * sp * 3,
+//       apy: 14.2,
+//       leverage: 3,
+//       health: 78,
+//       icon: "https://storage.googleapis.com/token-metadata/JitoSOL-256.png",
+//     },
+//     {
+//       id: "lp-solusdc",
+//       type: "LP Vault",
+//       token: "SOL-USDC",
+//       amount: 0.8,
+//       usdValue: 0.8 * sp + 120,
+//       apy: 22.5,
+//       health: 95,
+//       icon: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+//     },
+//   ];
+// }

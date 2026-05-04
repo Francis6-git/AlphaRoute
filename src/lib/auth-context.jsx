@@ -80,7 +80,7 @@ export function AuthProvider({ children }) {
   const signUp = async (email, password, metadata = {}) => {
     // Pass redirect_to so Supabase confirmation email redirects back to this app
     const redirectTo =
-      import.meta.env.VITE_AUTH_REDIRECT_URL ||
+      import.meta.env.VITE_API_BASE_URL ||
       window.location.origin + window.location.pathname;
     const response = await fetch(
       `${supabaseUrl}/auth/v1/signup?redirect_to=${encodeURIComponent(redirectTo)}`,
@@ -164,7 +164,14 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    return { user: null, session: null, loading: false, signUp: async () => {}, signIn: async () => {}, signOut: async () => {} };
+    return {
+      user: null,
+      session: null,
+      loading: false,
+      signUp: async () => {},
+      signIn: async () => {},
+      signOut: async () => {},
+    };
   }
   return context;
 }
