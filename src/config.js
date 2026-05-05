@@ -1,25 +1,10 @@
-// Dynamic base URL: explicit env var → current origin → eitherway fallback.
-// On Vercel the /api/* serverless functions live at the same origin as the app,
-// so window.location.origin gives the correct base with zero configuration.
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  (typeof window !== "undefined"
-    ? window.location.origin
-    : "https://api.eitherway.ai");
+  import.meta.env.VITE_API_BASE_URL || "https://api.eitherway.ai";
 
-// Jupiter / Dialect proxy
 export const DIALECT_PROXY = `${API_BASE_URL}/api/dialect`;
-
-// DFlow MEV-protection swap proxy
 export const DFLOW_PROXY = `${API_BASE_URL}/api/dflow`;
-
-// Kamino Finance data API proxy (resolves CORS & 403 on direct fetch)
-export const KAMINO_API_PROXY = `${API_BASE_URL}/api/kamino`;
-
-// Solana RPC — both point to the same /api/solana-rpc serverless function
-// which injects the private endpoint URL server-side via PRIVATE_RPC_URL.
-export const SOLANA_RPC_PROXY = `${API_BASE_URL}/api/solana-rpc`;
-export const QUICKNODE_SOLANA = `${API_BASE_URL}/api/solana-rpc`;
+export const SOLANA_RPC_PROXY = `${API_BASE_URL}/api/solana/rpc`;
+export const QUICKNODE_SOLANA = `${API_BASE_URL}/api/quicknode/rpc/solana`;
 
 // Token Mints (mainnet)
 export const TOKENS = {

@@ -100,7 +100,10 @@ export default function HistoryPanel() {
         <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-xs text-yellow-400">
           <FlaskConical className="w-3.5 h-3.5 shrink-0" />
           Demo mode — {demoTrades.length} sample trades. Press{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-yellow-500/20 font-mono">Ctrl+Shift+D</kbd> to toggle.
+          <kbd className="px-1.5 py-0.5 rounded bg-yellow-500/20 font-mono">
+            Ctrl+Shift+D
+          </kbd>{" "}
+          to toggle.
         </div>
       )}
       {/* Header */}
@@ -111,7 +114,8 @@ export default function HistoryPanel() {
             Trade History
           </h2>
           <p className="text-xs text-alpha-dim mt-0.5">
-            {trades.length} total execution{trades.length !== 1 ? "s" : ""} recorded.
+            {trades.length} total execution{trades.length !== 1 ? "s" : ""}{" "}
+            recorded.
           </p>
         </div>
         <button

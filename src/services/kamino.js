@@ -1,6 +1,5 @@
 import {
   DIALECT_PROXY,
-  KAMINO_API_PROXY,
   KAMINO_MAIN_MARKET,
   KAMINO_RESERVES,
   SOL_USDC_VAULT,
@@ -192,27 +191,26 @@ export async function fetchBlinkMeta(path) {
 }
 
 /**
- * Fetch live Kamino positions for a wallet via the /api/kamino proxy.
- * Routing through the proxy prevents CORS errors and direct-fetch 403s.
+ * For a production build, @kamino-finance/kaminisdk fetch implementation using their data API for speed.
  */
 export async function fetchLiveKaminoPositions(walletPublicKey) {
   try {
+    // You can use Kamino's public data API or your own indexer
     const response = await fetch(
-      `${KAMINO_API_PROXY}/v1/users/${walletPublicKey}/positions`,
+      `https://api.kamino.finance/v1/users/${walletPublicKey}/positions`,
     );
-    if (!response.ok)
-      throw new Error(`Kamino positions API returned ${response.status}`);
+    if (!response.ok) throw new Error("Failed to fetch Kamino positions");
 
     const data = await response.json();
-    if (!Array.isArray(data?.positions)) return [];
 
+    // Map their API response to your UI structure
     return data.positions.map((p) => ({
       id: p.obligationId || p.vaultId,
-      type: p.strategyType,
+      type: p.strategyType, // e.g., 'Lend', 'Multiply', 'LP'
       token: p.symbol,
-      amount: parseFloat(p.amount) || 0,
-      usdValue: parseFloat(p.usdValue) || 0,
-      apy: parseFloat(p.apy) || 0,
+      amount: parseFloat(p.amount),
+      usdValue: parseFloat(p.usdValue),
+      apy: parseFloat(p.apy),
       health: p.healthFactor || 100,
       icon: p.mintAddress
         ? `https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/${p.mintAddress}/logo.png`
@@ -220,8 +218,8 @@ export async function fetchLiveKaminoPositions(walletPublicKey) {
       leverage: p.leverage || null,
     }));
   } catch (error) {
-    console.error("[kamino] fetchLiveKaminoPositions:", error.message);
-    return [];
+    console.error("Error fetching live positions:", error);
+    return []; // Return empty so UI doesn't crash
   }
 }
 
