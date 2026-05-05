@@ -207,6 +207,8 @@ export default function PortfolioRail(props) {
 
   useEffect(() => {
     loadKaminoData();
+    const interval = setInterval(loadKaminoData, 15000);
+    return () => clearInterval(interval);
   }, [loadKaminoData]);
 
   //  useEffect(() => {
@@ -254,6 +256,8 @@ export function MobilePortfolioRail({ isOpen, onClose, ...props }) {
 
   useEffect(() => {
     loadKaminoData();
+    const interval = setInterval(loadKaminoData, 15000);
+    return () => clearInterval(interval);
   }, [loadKaminoData]);
 
   //  useEffect(() => {

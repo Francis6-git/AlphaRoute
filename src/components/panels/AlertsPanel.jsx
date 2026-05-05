@@ -34,25 +34,32 @@ export default function AlertsPanel({ balances }) {
   const [kaminoWithdraw, setKaminoWithdraw] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const loadAlerts = useCallback(async () => {
-    if (isDemo) {
-      setAlerts(demoAlerts);
-      return;
-    }
-    if (!publicKey) return;
-    setLoading(true);
-    try {
-      const data = await fetchAlerts(publicKey.toBase58());
-      setAlerts(data);
-    } catch (e) {
-      toast.error("Could not load alerts", { description: e.message });
-    } finally {
-      setLoading(false);
-    }
-  }, [publicKey, isDemo, demoAlerts]);
+  const loadAlerts = useCallback(
+    async (isBackground = false) => {
+      if (isDemo) {
+        setAlerts(demoAlerts);
+        return;
+      }
+      if (!publicKey) return;
+      if (!isBackground) setLoading(true);
+      try {
+        const data = await fetchAlerts(publicKey.toBase58());
+        setAlerts(data);
+      } catch (e) {
+        if (!isBackground) {
+          toast.error("Could not load alerts", { description: e.message });
+        }
+      } finally {
+        if (!isBackground) setLoading(false);
+      }
+    },
+    [publicKey, isDemo, demoAlerts],
+  );
 
   useEffect(() => {
     loadAlerts();
+    const interval = setInterval(() => loadAlerts(true), 15000);
+    return () => clearInterval(interval);
   }, [loadAlerts]);
 
   const handleCreate = async () => {
@@ -67,17 +74,17 @@ export default function AlertsPanel({ balances }) {
 
     try {
       const alertData = {
-        wallet:           publicKey.toBase58(),
-        tokenMint:        selectedToken.mint,
-        tokenSymbol:      selectedToken.symbol,
-        targetPrice:      parseFloat(targetPrice),
+        wallet: publicKey.toBase58(),
+        tokenMint: selectedToken.mint,
+        tokenSymbol: selectedToken.symbol,
+        targetPrice: parseFloat(targetPrice),
         direction,
         action,
-        tradeInputMint:  action === "trade" ? selectedToken.mint        : null,
-        tradeOutputMint: action === "trade" ? tradeOutputToken.mint     : null,
-        tradeAmount:     action === "trade" ? parseFloat(tradeAmount)   : null,
+        tradeInputMint: action === "trade" ? selectedToken.mint : null,
+        tradeOutputMint: action === "trade" ? tradeOutputToken.mint : null,
+        tradeAmount: action === "trade" ? parseFloat(tradeAmount) : null,
         kaminoWithdraw,
-        kaminoVaultId:   null,
+        kaminoVaultId: null,
       };
 
       await saveAlert(alertData);
@@ -124,6 +131,52 @@ export default function AlertsPanel({ balances }) {
     }
   };
 
+  //  Alert Monitor
+  // This watches the prices and triggers alerts while the app is open.
+  useEffect(() => {
+    if (!alerts.length || isDemo) return;
+
+    alerts.forEach((alert) => {
+      if (alert.status !== "active") return;
+
+      const currentPrice = balances[alert.token_symbol]?.price;
+      if (!currentPrice) return;
+
+      const isTriggered =
+        alert.direction === "above"
+          ? currentPrice >= alert.target_price
+          : currentPrice <= alert.target_price;
+
+      if (isTriggered) {
+        // Trigger notification
+        toast.info(`Alert Triggered: ${alert.token_symbol}`, {
+          description: `${alert.token_symbol} is now $${currentPrice.toFixed(4)} (${alert.direction} $${alert.target_price})`,
+          action:
+            alert.action === "trade"
+              ? {
+                  label: "Execute Trade",
+                  onClick: () => {
+                    // Trigger trade execution logic (would ideally open swap panel or execute directly)
+                    toast.success("Initiating auto-trade...");
+                  },
+                }
+              : null,
+          duration: 10000,
+        });
+
+        // Update status in DB (optimistic)
+        setAlerts((prev) =>
+          prev.map((a) =>
+            a.id === alert.id ? { ...a, status: "triggered" } : a,
+          ),
+        );
+        import("../../services/database").then((db) =>
+          db.updateAlertStatus(alert.id, "triggered"),
+        );
+      }
+    });
+  }, [alerts, balances, isDemo]);
+
   if (!connected && !isDemo) {
     return (
       <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
@@ -146,7 +199,9 @@ export default function AlertsPanel({ balances }) {
         <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-xs text-yellow-400">
           <FlaskConical className="w-3.5 h-3.5 shrink-0" />
           Demo mode — sample data only. Press{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-yellow-500/20 font-mono">Ctrl+Shift+D</kbd>{" "}
+          <kbd className="px-1.5 py-0.5 rounded bg-yellow-500/20 font-mono">
+            Ctrl+Shift+D
+          </kbd>{" "}
           to toggle.
         </div>
       )}

@@ -10,7 +10,7 @@
  *   const { isDemo, demoTrades, demoAlerts, demoPositions, demoStats } = useDemoData();
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 const DEMO_KEY = "ar_demo";
 
@@ -185,10 +185,16 @@ export function useDemoData() {
   }, [handleKey]);
 
   // Stable memo: build demo data only when isDemo is true
-  const demoTrades = isDemo ? buildDemoTrades() : [];
-  const demoAlerts = isDemo ? DEMO_ALERTS : [];
-  const demoPositions = isDemo ? buildDemoPositions() : [];
-  const demoStats = isDemo ? buildDemoStats(buildDemoTrades()) : null;
+  const demoTrades = useMemo(() => (isDemo ? buildDemoTrades() : []), [isDemo]);
+  const demoAlerts = useMemo(() => (isDemo ? DEMO_ALERTS : []), [isDemo]);
+  const demoPositions = useMemo(
+    () => (isDemo ? buildDemoPositions() : []),
+    [isDemo],
+  );
+  const demoStats = useMemo(
+    () => (isDemo ? buildDemoStats(demoTrades) : null),
+    [isDemo, demoTrades],
+  );
 
   const toggleDemo = () => {
     const next = !isDemo;
@@ -200,7 +206,14 @@ export function useDemoData() {
     setIsDemo(next);
   };
 
-  return { isDemo, toggleDemo, demoTrades, demoAlerts, demoPositions, demoStats };
+  return {
+    isDemo,
+    toggleDemo,
+    demoTrades,
+    demoAlerts,
+    demoPositions,
+    demoStats,
+  };
 }
 
 export { DEMO_ALERTS, buildDemoTrades, buildDemoStats };

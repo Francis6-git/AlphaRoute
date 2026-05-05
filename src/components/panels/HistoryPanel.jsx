@@ -54,25 +54,34 @@ export default function HistoryPanel() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 15;
 
-  const load = useCallback(async () => {
-    if (isDemo) {
-      setTrades(demoTrades);
-      return;
-    }
-    if (!publicKey) return;
-    setLoading(true);
-    try {
-      const data = await fetchTrades(publicKey.toBase58(), 200);
-      setTrades(data);
-    } catch (e) {
-      toast.error("Could not load trade history", { description: e.message });
-    } finally {
-      setLoading(false);
-    }
-  }, [publicKey, isDemo, demoTrades]);
+  const load = useCallback(
+    async (isBackground = false) => {
+      if (isDemo) {
+        setTrades(demoTrades);
+        return;
+      }
+      if (!publicKey) return;
+      if (!isBackground) setLoading(true);
+      try {
+        const data = await fetchTrades(publicKey.toBase58(), 200);
+        setTrades(data);
+      } catch (e) {
+        if (!isBackground) {
+          toast.error("Could not load trade history", {
+            description: e.message,
+          });
+        }
+      } finally {
+        if (!isBackground) setLoading(false);
+      }
+    },
+    [publicKey, isDemo, demoTrades],
+  );
 
   useEffect(() => {
     load();
+    const interval = setInterval(() => load(true), 15000);
+    return () => clearInterval(interval);
   }, [load]);
 
   if (!connected && !isDemo) {

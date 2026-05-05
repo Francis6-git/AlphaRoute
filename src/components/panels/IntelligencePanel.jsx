@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "sonner";
 import { useDemoData } from "../../hooks/useDemoData";
@@ -72,23 +72,38 @@ export default function IntelligencePanel() {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(null);
 
-  useEffect(() => {
-    if (isDemo) {
-      setStats(demoStats);
-      return;
-    }
-    if (!publicKey) return;
-    setLoading(true);
-    setFetchError(null);
-    fetchTradeStats(publicKey.toBase58())
-      .then((data) => setStats(data))
-      .catch((err) => {
+  const load = useCallback(
+    async (isBackground = false) => {
+      if (isDemo) {
+        setStats(demoStats);
+        return;
+      }
+      if (!publicKey) return;
+      if (!isBackground) setLoading(true);
+      setFetchError(null);
+      try {
+        const data = await fetchTradeStats(publicKey.toBase58());
+        setStats(data);
+      } catch (err) {
         console.error("[IntelligencePanel]", err);
-        setFetchError(err.message || "Could not load analytics");
-        toast.error("Analytics unavailable", { description: err.message?.slice(0, 80) });
-      })
-      .finally(() => setLoading(false));
-  }, [publicKey, isDemo, demoStats]);
+        if (!isBackground) {
+          setFetchError(err.message || "Could not load analytics");
+          toast.error("Analytics unavailable", {
+            description: err.message?.slice(0, 80),
+          });
+        }
+      } finally {
+        if (!isBackground) setLoading(false);
+      }
+    },
+    [publicKey, isDemo, demoStats],
+  );
+
+  useEffect(() => {
+    load();
+    const interval = setInterval(() => load(true), 15000);
+    return () => clearInterval(interval);
+  }, [load]);
 
   if (!connected && !isDemo) {
     return (
@@ -117,8 +132,12 @@ export default function IntelligencePanel() {
     return (
       <div className="flex flex-col items-center justify-center py-20 animate-fade-in">
         <AlertTriangle className="w-12 h-12 text-alpha-alert mb-4" />
-        <h2 className="text-lg font-semibold text-alpha-text mb-2">Analytics Unavailable</h2>
-        <p className="text-sm text-alpha-dim text-center max-w-sm">{fetchError}</p>
+        <h2 className="text-lg font-semibold text-alpha-text mb-2">
+          Analytics Unavailable
+        </h2>
+        <p className="text-sm text-alpha-dim text-center max-w-sm">
+          {fetchError}
+        </p>
       </div>
     );
   }
@@ -173,7 +192,10 @@ export default function IntelligencePanel() {
         <div className="flex items-center gap-2 px-3 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-xs text-yellow-400">
           <FlaskConical className="w-3.5 h-3.5 shrink-0" />
           Demo mode — sample analytics. Press{" "}
-          <kbd className="px-1.5 py-0.5 rounded bg-yellow-500/20 font-mono">Ctrl+Shift+D</kbd> to toggle.
+          <kbd className="px-1.5 py-0.5 rounded bg-yellow-500/20 font-mono">
+            Ctrl+Shift+D
+          </kbd>{" "}
+          to toggle.
         </div>
       )}
       {/* Header */}
