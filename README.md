@@ -1,5 +1,8 @@
 ### AlphaRoute
 
+![App Screenshot](./public/screenshot.png)
+
+Link:
 https://alpha-route.vercel.app/
 
 **The Execution Intelligence Terminal**  

@@ -388,7 +388,7 @@ export default function AlertsPanel({ balances }) {
                   step="any"
                 />
               </div>
-              <div className="sm:col-span-2">
+              {/* <div className="sm:col-span-2">
                 <label className="flex items-center gap-2 text-xs text-alpha-dim cursor-pointer">
                   <input
                     type="checkbox"
@@ -398,7 +398,7 @@ export default function AlertsPanel({ balances }) {
                   />
                   Auto-withdraw from Kamino vault to fund trade
                 </label>
-              </div>
+              </div> */}
             </div>
           )}
 
