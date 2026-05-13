@@ -32,7 +32,13 @@ const connection = new Connection(SOLANA_RPC_PROXY, {
   commitment: "confirmed",
 });
 
-export default function TradePanel({ balances, stats }) {
+export default function TradePanel({
+  balances,
+  stats,
+  onTradeComplete,
+  initialTradeData,
+  clearInitialData,
+}) {
   const { publicKey, signTransaction, connected } = useWallet();
 
   const [inputToken, setInputToken] = useState(TOKENS.SOL);
@@ -136,6 +142,22 @@ export default function TradePanel({ balances, stats }) {
     mevProtect,
     getSlippageBps,
   ]);
+
+  useEffect(() => {
+    if (initialTradeData) {
+      // Find the token objects from config
+      const tokenIn = TOKENS[initialTradeData.inputSymbol] || TOKENS.SOL;
+      const tokenOut = TOKENS[initialTradeData.outputSymbol] || TOKENS.USDC;
+
+      setInputToken(tokenIn);
+      setOutputToken(tokenOut);
+      setInputAmount(initialTradeData.tradeAmount.toString());
+
+      clearInitialData();
+
+      toast.success("Trade data imported from Alert");
+    }
+  }, [initialTradeData, clearInitialData]);
 
   useEffect(() => {
     clearTimeout(quoteTimer.current);

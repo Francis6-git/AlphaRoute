@@ -31,6 +31,7 @@ export default function App() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [pendingTrade, setPendingTrade] = useState(null);
 
   // Show dashboard if user is logged in, wallet is connected, or user chose to enter
   const isDashboard = showDashboard || !!user || connected;
@@ -38,6 +39,12 @@ export default function App() {
   const onTradeComplete = useCallback(() => {
     refreshBalances();
   }, [refreshBalances]);
+
+  // Passed to AlertsPanel
+  const handleTriggerTrade = useCallback((tradeData) => {
+    setPendingTrade(tradeData);
+    setActiveTab("trade");
+  }, []);
 
   const handleLaunch = () => {
     if (user || connected) {
@@ -73,6 +80,8 @@ export default function App() {
             balances={balances}
             stats={stats}
             onTradeComplete={onTradeComplete}
+            initialTradeData={pendingTrade}
+            clearInitialData={() => setPendingTrade(null)}
           />
         );
       case "yield":
@@ -82,7 +91,12 @@ export default function App() {
       case "analytics":
         return <IntelligencePanel />;
       case "alerts":
-        return <AlertsPanel balances={balances} />;
+        return (
+          <AlertsPanel
+            balances={balances}
+            onTriggerTrade={handleTriggerTrade}
+          />
+        );
       case "history":
         return <HistoryPanel />;
       default:

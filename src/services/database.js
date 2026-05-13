@@ -7,13 +7,17 @@
  * DATABASE SETUP:
  *   Tables required: trades, price_alerts
  *   Run the migration in scripts/db-setup.sql via the Supabase SQL editor
- *   (Project: hpwacbhxsvahvlbmbseq) if the tables do not exist yet.
  */
 import { supabase } from "../lib/supabase";
 
 // ── Guard helpers ─────────────────────────────────────────────────────────────
 function assertWallet(wallet) {
-  if (!wallet || typeof wallet !== "string" || wallet.length < 32 || wallet.length > 44) {
+  if (
+    !wallet ||
+    typeof wallet !== "string" ||
+    wallet.length < 32 ||
+    wallet.length > 44
+  ) {
     throw new Error("Invalid wallet address");
   }
 }
@@ -26,19 +30,19 @@ export async function saveTrade(trade) {
     .from("trades")
     .insert([
       {
-        wallet:          trade.wallet,
-        input_token:     trade.inputToken,
-        output_token:    trade.outputToken,
-        input_amount:    trade.inputAmount,
-        output_amount:   trade.outputAmount,
-        input_usd:       trade.inputUsd   ?? 0,
-        output_usd:      trade.outputUsd  ?? 0,
-        route_provider:  trade.routeProvider || "dflow",
+        wallet: trade.wallet,
+        input_token: trade.inputToken,
+        output_token: trade.outputToken,
+        input_amount: trade.inputAmount,
+        output_amount: trade.outputAmount,
+        input_usd: trade.inputUsd ?? 0,
+        output_usd: trade.outputUsd ?? 0,
+        route_provider: trade.routeProvider || "dflow",
         execution_score: trade.executionScore ?? 0,
-        slippage_bps:    trade.slippageBps    ?? 0,
-        mev_protected:   trade.mevProtected   ?? true,
-        signature:       trade.signature,
-        status:          trade.status || "confirmed",
+        slippage_bps: trade.slippageBps ?? 0,
+        mev_protected: trade.mevProtected ?? true,
+        signature: trade.signature,
+        status: trade.status || "confirmed",
       },
     ])
     .select()
@@ -86,18 +90,18 @@ export async function saveAlert(alert) {
     .from("price_alerts")
     .insert([
       {
-        wallet:            alert.wallet,
-        token_mint:        alert.tokenMint,
-        token_symbol:      alert.tokenSymbol,
-        target_price:      alert.targetPrice,
-        direction:         alert.direction,
-        action:            alert.action,
-        trade_input_mint:  alert.tradeInputMint  ?? null,
+        wallet: alert.wallet,
+        token_mint: alert.tokenMint,
+        token_symbol: alert.tokenSymbol,
+        target_price: alert.targetPrice,
+        direction: alert.direction,
+        action: alert.action,
+        trade_input_mint: alert.tradeInputMint ?? null,
         trade_output_mint: alert.tradeOutputMint ?? null,
-        trade_amount:      alert.tradeAmount     ?? null,
-        kamino_withdraw:   alert.kaminoWithdraw  ?? false,
-        kamino_vault_id:   alert.kaminoVaultId   ?? null,
-        status:            "active",
+        trade_amount: alert.tradeAmount ?? null,
+        kamino_withdraw: alert.kaminoWithdraw ?? false,
+        kamino_vault_id: alert.kaminoVaultId ?? null,
+        status: "active",
       },
     ])
     .select()
@@ -144,7 +148,9 @@ export async function updateAlertStatus(id, status) {
     .from("price_alerts")
     .update({
       status,
-      ...(status === "triggered" ? { triggered_at: new Date().toISOString() } : {}),
+      ...(status === "triggered"
+        ? { triggered_at: new Date().toISOString() }
+        : {}),
     })
     .eq("id", id);
 
@@ -167,18 +173,19 @@ export async function fetchTradeStats(wallet) {
   const byToken = {};
   trades.forEach((t) => {
     if (t.input_token) {
-      byToken[t.input_token] = (byToken[t.input_token] || 0) + (t.input_usd || 0);
+      byToken[t.input_token] =
+        (byToken[t.input_token] || 0) + (t.input_usd || 0);
     }
   });
 
   return {
-    totalTrades:       trades.length,
+    totalTrades: trades.length,
     totalVolume,
     avgExecutionScore: Math.round(avgScore),
-    mevProtectedPct:   Math.round((mevProtected / trades.length) * 100),
-    topTokens:         Object.entries(byToken)
-                         .sort((a, b) => b[1] - a[1])
-                         .slice(0, 5),
-    recentTrades:      trades.slice(0, 10),
+    mevProtectedPct: Math.round((mevProtected / trades.length) * 100),
+    topTokens: Object.entries(byToken)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5),
+    recentTrades: trades.slice(0, 10),
   };
 }

@@ -11,13 +11,14 @@ import {
   X,
   Zap,
   FlaskConical,
+  Pencil,
 } from "lucide-react";
 import { TOKEN_LIST, TOKENS } from "../../config";
 import { saveAlert, fetchAlerts, deleteAlert } from "../../services/database";
 import { useDemoData } from "../../hooks/useDemoData";
 import { toast } from "sonner";
 
-export default function AlertsPanel({ balances }) {
+export default function AlertsPanel({ balances, onTriggerTrade }) {
   const { publicKey, connected } = useWallet();
   const { isDemo, demoAlerts } = useDemoData();
   const [alerts, setAlerts] = useState([]);
@@ -33,6 +34,7 @@ export default function AlertsPanel({ balances }) {
   const [tradeAmount, setTradeAmount] = useState("");
   const [kaminoWithdraw, setKaminoWithdraw] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   const loadAlerts = useCallback(
     async (isBackground = false) => {
@@ -131,6 +133,16 @@ export default function AlertsPanel({ balances }) {
     }
   };
 
+  const handleEditInitiation = (alert) => {
+    setEditingId(alert.id);
+    setSelectedToken(TOKEN_LIST.find((t) => t.mint === alert.token_mint));
+    setTargetPrice(alert.target_price);
+    setDirection(alert.direction);
+    setAction(alert.action);
+    setTradeAmount(alert.trade_amount || "");
+    setShowCreate(true);
+  };
+
   //  Alert Monitor
   // This watches the prices and triggers alerts while the app is open.
   useEffect(() => {
@@ -156,7 +168,11 @@ export default function AlertsPanel({ balances }) {
               ? {
                   label: "Execute Trade",
                   onClick: () => {
-                    // Trigger trade execution logic (would ideally open swap panel or execute directly)
+                    onTriggerTrade({
+                      inputSymbol: alert.token_symbol,
+                      outputSymbol: alert.trade_output_symbol,
+                      tradeAmount: alert.trade_amount,
+                    });
                     toast.success("Initiating auto-trade...");
                   },
                 }
@@ -486,16 +502,28 @@ export default function AlertsPanel({ balances }) {
                   {a.status || "active"}
                 </span>
 
-                {/* Delete — disabled in demo mode */}
-                {!isDemo && (
-                  <button
-                    onClick={() => handleDelete(a.id)}
-                    className="p-1.5 rounded-lg hover:bg-alpha-alert/10 text-alpha-muted hover:text-alpha-alert transition-all"
-                    title="Delete alert"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                )}
+                <div className="flex gap-1">
+                  {/* Edit Icon */}
+                  {!isDemo && (
+                    <button
+                      onClick={() => handleEditInitiation(a)}
+                      className="p-1.5 rounded-lg hover:bg-alpha-blue/10 text-alpha-muted hover:text-alpha-blue transition-all"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />{" "}
+                    </button>
+                  )}
+
+                  {/* Delete — disabled in demo mode */}
+                  {!isDemo && (
+                    <button
+                      onClick={() => handleDelete(a.id)}
+                      className="p-1.5 rounded-lg hover:bg-alpha-alert/10 text-alpha-muted hover:text-alpha-alert transition-all"
+                      title="Delete alert"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
